@@ -156,6 +156,7 @@ export class PuzzleGame {
     this.usedShari = new Set();
     this.score = 0;
     this.optimalSolution = null;
+    this.history = []; // For undo functionality
   }
 
   newPuzzle() {
@@ -167,6 +168,7 @@ export class PuzzleGame {
     this.usedShari = new Set();
     this.score = 0;
     this.optimalSolution = findTrueOptimalSolution(this.puzzle);
+    this.history = [];
 
     return this.puzzle;
   }
@@ -210,6 +212,14 @@ export class PuzzleGame {
       return result;
     }
 
+    // Save state for undo
+    this.history.push({
+      netaCard: this.selectedNeta,
+      shariCard: this.selectedShari,
+      kanji: match,
+      score: this.score
+    });
+
     // Valid kanji found!
     this.formedKanji.push({
       ...match,
@@ -230,6 +240,30 @@ export class PuzzleGame {
 
     this.clearSelection();
     return result;
+  }
+
+  undo() {
+    if (this.history.length === 0) {
+      return { success: false, message: 'Nothing to undo' };
+    }
+
+    const lastMove = this.history.pop();
+
+    // Restore state
+    this.formedKanji.pop();
+    this.usedNeta.delete(lastMove.netaCard.id);
+    this.usedShari.delete(lastMove.shariCard.id);
+    this.score = lastMove.score;
+
+    return {
+      success: true,
+      message: `Undid ${lastMove.kanji.kanji}. Score: ${this.score}`,
+      undoneKanji: lastMove.kanji.kanji
+    };
+  }
+
+  canUndo() {
+    return this.history.length > 0;
   }
 
   getAvailableNeta() {

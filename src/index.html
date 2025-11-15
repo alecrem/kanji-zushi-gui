@@ -66,9 +66,11 @@
     <div class="controls">
       <button class="btn-success" id="formKanjiBtn" disabled>Form Kanji</button>
       <button class="btn-secondary" id="clearBtn">Clear Selection</button>
+      <button class="btn-secondary" id="undoBtn" disabled>Undo</button>
       <button class="btn-secondary" id="hintBtn">Show Hint</button>
       <button class="btn-danger" id="giveUpBtn">Give Up</button>
       <button class="btn-primary" id="newPuzzleBtn">New Puzzle</button>
+      <button class="btn-secondary" id="statsBtn">Stats</button>
     </div>
 
     <!-- Formed Kanji Display -->
@@ -104,6 +106,18 @@
       </div>
       <div style="text-align: center; margin-top: 20px;">
         <button class="btn-primary" id="closeModalBtn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Modal -->
+  <div class="modal" id="statsModal">
+    <div class="modal-content">
+      <h2 class="modal-title">Your Statistics</h2>
+      <div id="statsContent"></div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn-primary" id="closeStatsBtn">Close</button>
+        <button class="btn-danger" id="resetStatsBtn">Reset Stats</button>
       </div>
     </div>
   </div>

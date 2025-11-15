@@ -1,6 +1,7 @@
 // Main Application for Kanji-zushi Puzzle Mode
 import { PuzzleGame } from './puzzleEngine.js';
 import { VALID_KANJI } from './gameData.js';
+import { recordGame, getFormattedStats, resetStats } from './stats.js';
 
 // DOM Elements
 const elements = {
@@ -14,6 +15,7 @@ const elements = {
   previewResult: document.getElementById('previewResult'),
   formKanjiBtn: document.getElementById('formKanjiBtn'),
   clearBtn: document.getElementById('clearBtn'),
+  undoBtn: document.getElementById('undoBtn'),
   giveUpBtn: document.getElementById('giveUpBtn'),
   newPuzzleBtn: document.getElementById('newPuzzleBtn'),
   hintBtn: document.getElementById('hintBtn'),
@@ -26,7 +28,12 @@ const elements = {
   efficiency: document.getElementById('efficiency'),
   finalKanjiCount: document.getElementById('finalKanjiCount'),
   optimalKanjiList: document.getElementById('optimalKanjiList'),
-  closeModalBtn: document.getElementById('closeModalBtn')
+  closeModalBtn: document.getElementById('closeModalBtn'),
+  statsBtn: document.getElementById('statsBtn'),
+  statsModal: document.getElementById('statsModal'),
+  statsContent: document.getElementById('statsContent'),
+  closeStatsBtn: document.getElementById('closeStatsBtn'),
+  resetStatsBtn: document.getElementById('resetStatsBtn')
 };
 
 // Game instance
@@ -46,6 +53,7 @@ function updateScoreDisplay() {
   elements.currentScore.textContent = game.score;
   elements.kanjiCount.textContent = game.formedKanji.length;
   elements.remainingCombos.textContent = game.getRemainingValidCombinations().length;
+  elements.undoBtn.disabled = !game.canUndo();
 }
 
 // Render neta cards
@@ -223,9 +231,27 @@ function handleHint() {
   showMessage(`Hint: Try ${netaCard.component} + ${hint.shari} = ${hint.kanji} (${hint.strokes} strokes)`, 'info');
 }
 
+// Undo last move
+function handleUndo() {
+  const result = game.undo();
+  if (result.success) {
+    showMessage(result.message, 'info');
+    renderNetaCards();
+    renderShariCards();
+    updatePreview();
+    updateScoreDisplay();
+    renderFormedKanji();
+  } else {
+    showMessage(result.message, 'error');
+  }
+}
+
 // Show game summary
 function showSummary() {
   const summary = game.getGameSummary();
+
+  // Record the game in statistics
+  recordGame(summary.totalScore, summary.optimalScore, summary.formedKanji.length);
 
   elements.finalScore.textContent = summary.totalScore;
   elements.optimalScore.textContent = summary.optimalScore;
@@ -244,6 +270,33 @@ function showSummary() {
   elements.summaryModal.classList.add('show');
 }
 
+// Show statistics
+function showStats() {
+  const stats = getFormattedStats();
+  let html = '';
+
+  for (const [label, value] of Object.entries(stats)) {
+    html += `
+      <div class="summary-stat">
+        <span class="summary-label">${label}:</span>
+        <span class="summary-value">${value}</span>
+      </div>
+    `;
+  }
+
+  elements.statsContent.innerHTML = html;
+  elements.statsModal.classList.add('show');
+}
+
+// Reset statistics
+function handleResetStats() {
+  if (confirm('Are you sure you want to reset all statistics? This cannot be undone.')) {
+    resetStats();
+    showStats(); // Refresh the display
+    showMessage('Statistics have been reset', 'info');
+  }
+}
+
 // Start new puzzle
 function startNewPuzzle() {
   game.newPuzzle();
@@ -260,15 +313,25 @@ function startNewPuzzle() {
 // Event listeners
 elements.formKanjiBtn.addEventListener('click', handleFormKanji);
 elements.clearBtn.addEventListener('click', handleClearSelection);
+elements.undoBtn.addEventListener('click', handleUndo);
 elements.hintBtn.addEventListener('click', handleHint);
 elements.giveUpBtn.addEventListener('click', handleGiveUp);
 elements.newPuzzleBtn.addEventListener('click', startNewPuzzle);
 elements.closeModalBtn.addEventListener('click', startNewPuzzle);
+elements.statsBtn.addEventListener('click', showStats);
+elements.closeStatsBtn.addEventListener('click', () => elements.statsModal.classList.remove('show'));
+elements.resetStatsBtn.addEventListener('click', handleResetStats);
 
-// Close modal on outside click
+// Close modals on outside click
 elements.summaryModal.addEventListener('click', (e) => {
   if (e.target === elements.summaryModal) {
     elements.summaryModal.classList.remove('show');
+  }
+});
+
+elements.statsModal.addEventListener('click', (e) => {
+  if (e.target === elements.statsModal) {
+    elements.statsModal.classList.remove('show');
   }
 });
 
