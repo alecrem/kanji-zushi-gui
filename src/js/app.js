@@ -33,7 +33,8 @@ const elements = {
   statsModal: document.getElementById('statsModal'),
   statsContent: document.getElementById('statsContent'),
   closeStatsBtn: document.getElementById('closeStatsBtn'),
-  resetStatsBtn: document.getElementById('resetStatsBtn')
+  resetStatsBtn: document.getElementById('resetStatsBtn'),
+  shareBtn: document.getElementById('shareBtn')
 };
 
 // Game instance
@@ -298,8 +299,8 @@ function handleResetStats() {
 }
 
 // Start new puzzle
-function startNewPuzzle() {
-  game.newPuzzle();
+function startNewPuzzle(seedString = null) {
+  game.newPuzzle(seedString);
   renderNetaCards();
   renderShariCards();
   updatePreview();
@@ -307,7 +308,45 @@ function startNewPuzzle() {
   renderFormedKanji();
   elements.summaryModal.classList.remove('show');
 
-  showMessage(`New puzzle! Optimal score: ${game.optimalSolution.totalScore} points possible`, 'info');
+  // Clear seed from URL when starting a new random puzzle
+  if (!seedString && window.location.search) {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  const seedInfo = seedString ? ` Seed: ${seedString}` : '';
+  showMessage(`New puzzle! Optimal score: ${game.optimalSolution.totalScore} points possible${seedInfo}`, 'info');
+}
+
+// Share current puzzle
+function handleShare() {
+  const seed = game.getSeed();
+  if (!seed) {
+    showMessage('No puzzle to share', 'error');
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('seed', seed);
+  const shareUrl = url.toString();
+
+  // Try to copy to clipboard
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      showMessage(`Puzzle link copied! Seed: ${seed}`, 'success');
+    }).catch(() => {
+      showMessage(`Share URL: ${shareUrl}`, 'info');
+    });
+  } else {
+    // Fallback for older browsers
+    prompt('Copy this URL to share the puzzle:', shareUrl);
+  }
+}
+
+// Check for seed in URL parameters
+function checkUrlForSeed() {
+  const params = new URLSearchParams(window.location.search);
+  const seed = params.get('seed');
+  return seed;
 }
 
 // Event listeners
@@ -316,8 +355,9 @@ elements.clearBtn.addEventListener('click', handleClearSelection);
 elements.undoBtn.addEventListener('click', handleUndo);
 elements.hintBtn.addEventListener('click', handleHint);
 elements.giveUpBtn.addEventListener('click', handleGiveUp);
-elements.newPuzzleBtn.addEventListener('click', startNewPuzzle);
-elements.closeModalBtn.addEventListener('click', startNewPuzzle);
+elements.newPuzzleBtn.addEventListener('click', () => startNewPuzzle());
+elements.closeModalBtn.addEventListener('click', () => startNewPuzzle());
+elements.shareBtn.addEventListener('click', handleShare);
 elements.statsBtn.addEventListener('click', showStats);
 elements.closeStatsBtn.addEventListener('click', () => elements.statsModal.classList.remove('show'));
 elements.resetStatsBtn.addEventListener('click', handleResetStats);
@@ -336,6 +376,12 @@ elements.statsModal.addEventListener('click', (e) => {
 });
 
 // Initialize game
-startNewPuzzle();
+const urlSeed = checkUrlForSeed();
+if (urlSeed) {
+  startNewPuzzle(urlSeed);
+  showMessage(`Loaded shared puzzle! Seed: ${urlSeed}`, 'success');
+} else {
+  startNewPuzzle();
+}
 
 console.log('Kanji-zushi Puzzle Mode initialized!');

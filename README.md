@@ -54,7 +54,8 @@ kanji-zushi-gui/
 │   └── js/
 │       ├── app.js          # Main application logic
 │       ├── gameData.js     # Card definitions and valid kanji
-│       └── puzzleEngine.js # Puzzle generation and game logic
+│       ├── puzzleEngine.js # Puzzle generation and game logic
+│       └── stats.js        # Statistics tracking with localStorage
 ├── docs/                   # Game rules and documentation
 └── package.json
 ```
@@ -79,7 +80,17 @@ The game includes 71 valid kanji combinations from the 10 neta radicals:
 - **Real-time validation** - See if your combination is valid before submitting
 - **Optimal solution calculator** - Compare your score to the best possible
 - **Score tracking** - Track your progress and remaining valid moves
+- **Undo functionality** - Made a mistake? Undo your last move
+- **Hint system** - Stuck? Get a hint for a valid combination
+- **Statistics tracking** - Track your lifetime stats (best score, average efficiency, perfect games)
+- **Shareable puzzles** - Share specific puzzles with friends via URL
 - **Responsive design** - Works on desktop and mobile
+
+## Sharing Puzzles
+
+Click the **Share** button to copy a URL that others can use to play the exact same puzzle. The URL contains a seed that reproduces the same card layout, so you can challenge friends to beat your score!
+
+Example: `http://localhost:3000/?seed=m9k2x7abc123`
 
 ## Development
 

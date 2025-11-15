@@ -3,26 +3,61 @@
 
 import { NETA_CARDS, SHARI_CARDS, VALID_KANJI, findKanji } from './gameData.js';
 
-// Fisher-Yates shuffle algorithm
-function shuffle(array) {
+// Seeded random number generator (mulberry32)
+function createSeededRandom(seed) {
+  let state = seed;
+  return function() {
+    state |= 0;
+    state = state + 0x6D2B79F5 | 0;
+    let t = Math.imul(state ^ state >>> 15, 1 | state);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Convert string to numeric seed
+function stringToSeed(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
+// Generate a random seed string
+function generateSeedString() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+}
+
+// Fisher-Yates shuffle algorithm with optional seeded random
+function shuffle(array, random = Math.random) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
 
 // Generate a random puzzle
-export function generatePuzzle(netaCount = 5, shariCount = 6) {
+export function generatePuzzle(netaCount = 5, shariCount = 6, seedString = null) {
   let puzzle;
   let attempts = 0;
   const maxAttempts = 100;
 
+  // Use provided seed or generate new one
+  const baseSeed = seedString || generateSeedString();
+
   // Keep generating until we have at least one valid combination
   do {
-    const shuffledNeta = shuffle(NETA_CARDS);
-    const shuffledShari = shuffle(SHARI_CARDS);
+    // Create a unique seed for each attempt
+    const attemptSeed = stringToSeed(baseSeed + (attempts > 0 ? `_${attempts}` : ''));
+    const random = createSeededRandom(attemptSeed);
+
+    const shuffledNeta = shuffle(NETA_CARDS, random);
+    const shuffledShari = shuffle(SHARI_CARDS, random);
 
     const dealtNeta = shuffledNeta.slice(0, netaCount);
     const dealtShari = shuffledShari.slice(0, shariCount);
@@ -31,7 +66,7 @@ export function generatePuzzle(netaCount = 5, shariCount = 6) {
       neta: dealtNeta,
       shari: dealtShari,
       timestamp: Date.now(),
-      seed: Math.random().toString(36).substring(7)
+      seed: baseSeed
     };
 
     attempts++;
@@ -159,8 +194,8 @@ export class PuzzleGame {
     this.history = []; // For undo functionality
   }
 
-  newPuzzle() {
-    this.puzzle = generatePuzzle();
+  newPuzzle(seedString = null) {
+    this.puzzle = generatePuzzle(5, 6, seedString);
     this.selectedNeta = null;
     this.selectedShari = null;
     this.formedKanji = [];
@@ -171,6 +206,10 @@ export class PuzzleGame {
     this.history = [];
 
     return this.puzzle;
+  }
+
+  getSeed() {
+    return this.puzzle ? this.puzzle.seed : null;
   }
 
   selectNeta(netaCard) {
