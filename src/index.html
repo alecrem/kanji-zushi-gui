@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanji-zushi Puzzle Mode</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>漢字寿司 Puzzle Mode</h1>
+      <p class="subtitle">Combine neta (left) and shari (right) cards to form kanji</p>
+    </header>
+
+    <!-- Score Panel -->
+    <div class="score-panel">
+      <div class="score-item">
+        <div class="score-label">Your Score</div>
+        <div class="score-value" id="currentScore">0</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Kanji Formed</div>
+        <div class="score-value" id="kanjiCount">0</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">Remaining Combos</div>
+        <div class="score-value" id="remainingCombos">-</div>
+      </div>
+    </div>
+
+    <!-- Message Display -->
+    <div class="message" id="message"></div>
+
+    <!-- Combination Preview -->
+    <div class="combination-preview">
+      <div class="preview-cards">
+        <div class="preview-card" id="previewNeta">
+          <span class="empty">Select neta</span>
+        </div>
+        <span class="preview-plus">+</span>
+        <div class="preview-card" id="previewShari">
+          <span class="empty">Select shari</span>
+        </div>
+        <span class="preview-equals">=</span>
+        <div class="preview-result" id="previewResult">?</div>
+      </div>
+    </div>
+
+    <!-- Game Board -->
+    <div class="game-board">
+      <!-- Neta Cards (Player's Hand) -->
+      <div class="board-section">
+        <div class="section-title">Your Neta Cards (Left Half)</div>
+        <div class="cards-row" id="netaCards"></div>
+      </div>
+
+      <!-- Shari Cards (Table) -->
+      <div class="board-section">
+        <div class="section-title">Shari Cards on Table (Right Half)</div>
+        <div class="cards-row" id="shariCards"></div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn-success" id="formKanjiBtn" disabled>Form Kanji</button>
+      <button class="btn-secondary" id="clearBtn">Clear Selection</button>
+      <button class="btn-secondary" id="hintBtn">Show Hint</button>
+      <button class="btn-danger" id="giveUpBtn">Give Up</button>
+      <button class="btn-primary" id="newPuzzleBtn">New Puzzle</button>
+    </div>
+
+    <!-- Formed Kanji Display -->
+    <div class="formed-kanji" id="formedKanjiSection" style="display: none;">
+      <div class="formed-title">Kanji You've Formed:</div>
+      <div class="formed-list" id="formedList"></div>
+    </div>
+  </div>
+
+  <!-- Game Summary Modal -->
+  <div class="modal" id="summaryModal">
+    <div class="modal-content">
+      <h2 class="modal-title">Puzzle Complete!</h2>
+      <div class="summary-stat">
+        <span class="summary-label">Your Score:</span>
+        <span class="summary-value highlight" id="finalScore">0</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-label">Optimal Score:</span>
+        <span class="summary-value" id="optimalScore">0</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-label">Efficiency:</span>
+        <span class="summary-value" id="efficiency">0%</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-label">Kanji Formed:</span>
+        <span class="summary-value" id="finalKanjiCount">0</span>
+      </div>
+      <div class="optimal-solution">
+        <div class="optimal-title">Optimal Solution:</div>
+        <div class="optimal-kanji" id="optimalKanjiList"></div>
+      </div>
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn-primary" id="closeModalBtn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

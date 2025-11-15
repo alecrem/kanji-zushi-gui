@@ -1,0 +1,278 @@
+// Main Application for Kanji-zushi Puzzle Mode
+import { PuzzleGame } from './puzzleEngine.js';
+import { VALID_KANJI } from './gameData.js';
+
+// DOM Elements
+const elements = {
+  netaCards: document.getElementById('netaCards'),
+  shariCards: document.getElementById('shariCards'),
+  currentScore: document.getElementById('currentScore'),
+  kanjiCount: document.getElementById('kanjiCount'),
+  remainingCombos: document.getElementById('remainingCombos'),
+  previewNeta: document.getElementById('previewNeta'),
+  previewShari: document.getElementById('previewShari'),
+  previewResult: document.getElementById('previewResult'),
+  formKanjiBtn: document.getElementById('formKanjiBtn'),
+  clearBtn: document.getElementById('clearBtn'),
+  giveUpBtn: document.getElementById('giveUpBtn'),
+  newPuzzleBtn: document.getElementById('newPuzzleBtn'),
+  hintBtn: document.getElementById('hintBtn'),
+  message: document.getElementById('message'),
+  formedKanjiSection: document.getElementById('formedKanjiSection'),
+  formedList: document.getElementById('formedList'),
+  summaryModal: document.getElementById('summaryModal'),
+  finalScore: document.getElementById('finalScore'),
+  optimalScore: document.getElementById('optimalScore'),
+  efficiency: document.getElementById('efficiency'),
+  finalKanjiCount: document.getElementById('finalKanjiCount'),
+  optimalKanjiList: document.getElementById('optimalKanjiList'),
+  closeModalBtn: document.getElementById('closeModalBtn')
+};
+
+// Game instance
+const game = new PuzzleGame();
+
+// Show message
+function showMessage(text, type = 'info') {
+  elements.message.textContent = text;
+  elements.message.className = `message show ${type}`;
+  setTimeout(() => {
+    elements.message.classList.remove('show');
+  }, 3000);
+}
+
+// Update score display
+function updateScoreDisplay() {
+  elements.currentScore.textContent = game.score;
+  elements.kanjiCount.textContent = game.formedKanji.length;
+  elements.remainingCombos.textContent = game.getRemainingValidCombinations().length;
+}
+
+// Render neta cards
+function renderNetaCards() {
+  elements.netaCards.innerHTML = '';
+  game.puzzle.neta.forEach(neta => {
+    const card = document.createElement('div');
+    card.className = 'card neta';
+    card.textContent = neta.component;
+    card.dataset.id = neta.id;
+    card.title = neta.name;
+
+    if (game.usedNeta.has(neta.id)) {
+      card.classList.add('used');
+    } else if (game.selectedNeta && game.selectedNeta.id === neta.id) {
+      card.classList.add('selected');
+    }
+
+    card.addEventListener('click', () => handleNetaClick(neta));
+    elements.netaCards.appendChild(card);
+  });
+}
+
+// Render shari cards
+function renderShariCards() {
+  elements.shariCards.innerHTML = '';
+  game.puzzle.shari.forEach(shari => {
+    const card = document.createElement('div');
+    card.className = 'card shari';
+    card.textContent = shari.component;
+    card.dataset.id = shari.id;
+
+    if (game.usedShari.has(shari.id)) {
+      card.classList.add('used');
+    } else if (game.selectedShari && game.selectedShari.id === shari.id) {
+      card.classList.add('selected');
+    }
+
+    card.addEventListener('click', () => handleShariClick(shari));
+    elements.shariCards.appendChild(card);
+  });
+}
+
+// Update combination preview
+function updatePreview() {
+  if (game.selectedNeta) {
+    elements.previewNeta.innerHTML = game.selectedNeta.component;
+  } else {
+    elements.previewNeta.innerHTML = '<span class="empty">Select neta</span>';
+  }
+
+  if (game.selectedShari) {
+    elements.previewShari.innerHTML = game.selectedShari.component;
+  } else {
+    elements.previewShari.innerHTML = '<span class="empty">Select shari</span>';
+  }
+
+  // Check if combination is valid
+  if (game.selectedNeta && game.selectedShari) {
+    const match = VALID_KANJI.find(k =>
+      k.neta === game.selectedNeta.id && k.shari === game.selectedShari.component
+    );
+    if (match) {
+      elements.previewResult.textContent = match.kanji;
+      elements.previewResult.classList.remove('invalid');
+      elements.formKanjiBtn.disabled = false;
+    } else {
+      elements.previewResult.textContent = '✗';
+      elements.previewResult.classList.add('invalid');
+      elements.formKanjiBtn.disabled = true;
+    }
+  } else {
+    elements.previewResult.textContent = '?';
+    elements.previewResult.classList.remove('invalid');
+    elements.formKanjiBtn.disabled = true;
+  }
+}
+
+// Handle neta card click
+function handleNetaClick(neta) {
+  if (game.usedNeta.has(neta.id)) {
+    showMessage('This neta card has already been used', 'error');
+    return;
+  }
+
+  const result = game.selectNeta(neta);
+  if (result.success) {
+    renderNetaCards();
+    updatePreview();
+  }
+}
+
+// Handle shari card click
+function handleShariClick(shari) {
+  if (game.usedShari.has(shari.id)) {
+    showMessage('This shari card has already been used', 'error');
+    return;
+  }
+
+  const result = game.selectShari(shari);
+  if (result.success) {
+    renderShariCards();
+    updatePreview();
+  }
+}
+
+// Render formed kanji list
+function renderFormedKanji() {
+  if (game.formedKanji.length === 0) {
+    elements.formedKanjiSection.style.display = 'none';
+    return;
+  }
+
+  elements.formedKanjiSection.style.display = 'block';
+  elements.formedList.innerHTML = '';
+
+  game.formedKanji.forEach(k => {
+    const item = document.createElement('div');
+    item.className = 'formed-item';
+    item.innerHTML = `
+      <span class="formed-kanji-char">${k.kanji}</span>
+      <span class="formed-strokes">${k.strokes} strokes</span>
+    `;
+    elements.formedList.appendChild(item);
+  });
+}
+
+// Form kanji button handler
+function handleFormKanji() {
+  const result = game.tryFormKanji();
+
+  if (result.success) {
+    showMessage(result.message, 'success');
+    renderNetaCards();
+    renderShariCards();
+    updatePreview();
+    updateScoreDisplay();
+    renderFormedKanji();
+
+    // Check if game is over
+    if (game.isGameOver()) {
+      setTimeout(() => showSummary(), 500);
+    }
+  } else {
+    showMessage(result.message, 'error');
+    updatePreview();
+  }
+}
+
+// Clear selection
+function handleClearSelection() {
+  game.clearSelection();
+  renderNetaCards();
+  renderShariCards();
+  updatePreview();
+}
+
+// Give up / end game
+function handleGiveUp() {
+  showSummary();
+}
+
+// Show hint
+function handleHint() {
+  const remainingCombos = game.getRemainingValidCombinations();
+  if (remainingCombos.length === 0) {
+    showMessage('No valid combinations remaining!', 'info');
+    return;
+  }
+
+  // Pick a random valid combination as hint
+  const hint = remainingCombos[Math.floor(Math.random() * remainingCombos.length)];
+  const netaCard = game.puzzle.neta.find(n => n.id === hint.neta);
+
+  showMessage(`Hint: Try ${netaCard.component} + ${hint.shari} = ${hint.kanji} (${hint.strokes} strokes)`, 'info');
+}
+
+// Show game summary
+function showSummary() {
+  const summary = game.getGameSummary();
+
+  elements.finalScore.textContent = summary.totalScore;
+  elements.optimalScore.textContent = summary.optimalScore;
+  elements.efficiency.textContent = `${summary.percentageOfOptimal}%`;
+  elements.finalKanjiCount.textContent = summary.formedKanji.length;
+
+  // Show optimal solution
+  elements.optimalKanjiList.innerHTML = '';
+  summary.optimalKanji.forEach(k => {
+    const item = document.createElement('span');
+    item.className = 'optimal-item';
+    item.textContent = `${k.kanji} (${k.strokes})`;
+    elements.optimalKanjiList.appendChild(item);
+  });
+
+  elements.summaryModal.classList.add('show');
+}
+
+// Start new puzzle
+function startNewPuzzle() {
+  game.newPuzzle();
+  renderNetaCards();
+  renderShariCards();
+  updatePreview();
+  updateScoreDisplay();
+  renderFormedKanji();
+  elements.summaryModal.classList.remove('show');
+
+  showMessage(`New puzzle! Optimal score: ${game.optimalSolution.totalScore} points possible`, 'info');
+}
+
+// Event listeners
+elements.formKanjiBtn.addEventListener('click', handleFormKanji);
+elements.clearBtn.addEventListener('click', handleClearSelection);
+elements.hintBtn.addEventListener('click', handleHint);
+elements.giveUpBtn.addEventListener('click', handleGiveUp);
+elements.newPuzzleBtn.addEventListener('click', startNewPuzzle);
+elements.closeModalBtn.addEventListener('click', startNewPuzzle);
+
+// Close modal on outside click
+elements.summaryModal.addEventListener('click', (e) => {
+  if (e.target === elements.summaryModal) {
+    elements.summaryModal.classList.remove('show');
+  }
+});
+
+// Initialize game
+startNewPuzzle();
+
+console.log('Kanji-zushi Puzzle Mode initialized!');
