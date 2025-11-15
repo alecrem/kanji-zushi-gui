@@ -14,6 +14,53 @@ body {
   color: #333;
 }
 
+/* Animations */
+@keyframes pulse {
+  0%, 100% { transform: scale(1.05); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  50% { transform: scale(1.3) rotate(5deg); }
+  75% { transform: scale(1.2) rotate(-3deg); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3); }
+  50% { box-shadow: 0 8px 24px rgba(40, 167, 69, 0.6); }
+}
+
 .container {
   max-width: 900px;
   margin: 0 auto;
@@ -63,6 +110,12 @@ h1 {
   font-size: 2em;
   font-weight: bold;
   color: #667eea;
+  transition: all 0.3s ease;
+}
+
+.score-value.updated {
+  animation: pulse 0.3s ease-out;
+  color: #28a745;
 }
 
 /* Game Board */
@@ -126,12 +179,24 @@ h1 {
   background: #e8f5e9;
   transform: scale(1.05);
   box-shadow: 0 8px 16px rgba(40, 167, 69, 0.3);
+  animation: glow 1.5s ease-in-out infinite;
 }
 
 .card.used {
   opacity: 0.3;
   cursor: not-allowed;
   background: #f0f0f0;
+  transform: scale(0.95);
+  transition: all 0.3s ease;
+}
+
+.card.celebrating {
+  animation: celebrate 0.6s ease-out;
+}
+
+.card.error {
+  animation: shake 0.4s ease-out;
+  border-color: #dc3545;
 }
 
 .card.neta {
@@ -195,10 +260,16 @@ h1 {
   font-size: 2.5em;
   color: #28a745;
   font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 .preview-result.invalid {
   color: #dc3545;
+  animation: shake 0.4s ease-out;
+}
+
+.preview-result.celebrating {
+  animation: celebrate 0.6s ease-out;
 }
 
 /* Controls */
@@ -221,6 +292,11 @@ button {
 
 button:active {
   transform: scale(0.95);
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary {
@@ -293,6 +369,12 @@ button:disabled {
   align-items: center;
   gap: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.formed-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .formed-kanji-char {
@@ -316,6 +398,7 @@ button:disabled {
 
 .message.show {
   display: block;
+  animation: slideDown 0.3s ease-out;
 }
 
 .message.success {
@@ -352,6 +435,12 @@ button:disabled {
 
 .modal.show {
   display: flex;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
@@ -362,6 +451,7 @@ button:disabled {
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
+  animation: fadeInScale 0.4s ease-out;
 }
 
 .modal-title {

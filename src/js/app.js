@@ -51,10 +51,21 @@ function showMessage(text, type = 'info') {
 
 // Update score display
 function updateScoreDisplay() {
-  elements.currentScore.textContent = game.score;
+  const oldScore = parseInt(elements.currentScore.textContent) || 0;
+  const newScore = game.score;
+
+  elements.currentScore.textContent = newScore;
   elements.kanjiCount.textContent = game.formedKanji.length;
   elements.remainingCombos.textContent = game.getRemainingValidCombinations().length;
   elements.undoBtn.disabled = !game.canUndo();
+
+  // Animate score change
+  if (newScore !== oldScore) {
+    elements.currentScore.classList.add('updated');
+    setTimeout(() => {
+      elements.currentScore.classList.remove('updated');
+    }, 300);
+  }
 }
 
 // Render neta cards
@@ -187,6 +198,12 @@ function handleFormKanji() {
   const result = game.tryFormKanji();
 
   if (result.success) {
+    // Celebrate the kanji formation
+    elements.previewResult.classList.add('celebrating');
+    setTimeout(() => {
+      elements.previewResult.classList.remove('celebrating');
+    }, 600);
+
     showMessage(result.message, 'success');
     renderNetaCards();
     renderShariCards();
@@ -200,6 +217,11 @@ function handleFormKanji() {
     }
   } else {
     showMessage(result.message, 'error');
+    // Shake the preview on error
+    elements.previewResult.classList.add('invalid');
+    setTimeout(() => {
+      elements.previewResult.classList.remove('invalid');
+    }, 400);
     updatePreview();
   }
 }
