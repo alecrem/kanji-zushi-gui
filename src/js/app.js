@@ -71,12 +71,21 @@ function updateScoreDisplay() {
 // Render neta cards
 function renderNetaCards() {
   elements.netaCards.innerHTML = '';
-  game.puzzle.neta.forEach(neta => {
+  game.puzzle.neta.forEach((neta, index) => {
     const card = document.createElement('div');
     card.className = 'card neta';
-    card.textContent = neta.component;
     card.dataset.id = neta.id;
-    card.title = neta.name;
+    card.title = `${neta.name} (Press ${index + 1})`;
+
+    // Add keyboard shortcut label
+    const shortcutLabel = document.createElement('span');
+    shortcutLabel.className = 'shortcut-label';
+    shortcutLabel.textContent = index + 1;
+    card.appendChild(shortcutLabel);
+
+    // Add component text
+    const componentText = document.createTextNode(neta.component);
+    card.appendChild(componentText);
 
     if (game.usedNeta.has(neta.id)) {
       card.classList.add('used');
@@ -92,11 +101,21 @@ function renderNetaCards() {
 // Render shari cards
 function renderShariCards() {
   elements.shariCards.innerHTML = '';
-  game.puzzle.shari.forEach(shari => {
+  const shariLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
+  game.puzzle.shari.forEach((shari, index) => {
     const card = document.createElement('div');
     card.className = 'card shari';
-    card.textContent = shari.component;
     card.dataset.id = shari.id;
+
+    // Add keyboard shortcut label
+    const shortcutLabel = document.createElement('span');
+    shortcutLabel.className = 'shortcut-label';
+    shortcutLabel.textContent = shariLabels[index];
+    card.appendChild(shortcutLabel);
+
+    // Add component text
+    const componentText = document.createTextNode(shari.component);
+    card.appendChild(componentText);
 
     if (game.usedShari.has(shari.id)) {
       card.classList.add('used');
@@ -397,6 +416,70 @@ elements.statsModal.addEventListener('click', (e) => {
   }
 });
 
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  // Don't handle keyboard shortcuts when modals are open
+  if (elements.summaryModal.classList.contains('show') ||
+      elements.statsModal.classList.contains('show')) {
+    if (e.key === 'Escape') {
+      elements.summaryModal.classList.remove('show');
+      elements.statsModal.classList.remove('show');
+    }
+    return;
+  }
+
+  // Number keys 1-5 for neta cards
+  if (e.key >= '1' && e.key <= '5') {
+    const index = parseInt(e.key) - 1;
+    if (index < game.puzzle.neta.length) {
+      handleNetaClick(game.puzzle.neta[index]);
+    }
+    return;
+  }
+
+  // Letter keys A-F for shari cards
+  const shariKeys = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5 };
+  if (shariKeys.hasOwnProperty(e.key.toLowerCase())) {
+    const index = shariKeys[e.key.toLowerCase()];
+    if (index < game.puzzle.shari.length) {
+      handleShariClick(game.puzzle.shari[index]);
+    }
+    return;
+  }
+
+  // Other keyboard shortcuts
+  switch (e.key.toLowerCase()) {
+    case 'enter':
+    case ' ':
+      if (!elements.formKanjiBtn.disabled) {
+        handleFormKanji();
+      }
+      e.preventDefault();
+      break;
+    case 'escape':
+      handleClearSelection();
+      break;
+    case 'h':
+      handleHint();
+      break;
+    case 'z':
+      if (e.ctrlKey || e.metaKey) {
+        handleUndo();
+        e.preventDefault();
+      }
+      break;
+    case 'n':
+      startNewPuzzle();
+      break;
+    case 's':
+      if (e.ctrlKey || e.metaKey) {
+        handleShare();
+        e.preventDefault();
+      }
+      break;
+  }
+});
+
 // Initialize game
 const urlSeed = checkUrlForSeed();
 if (urlSeed) {
@@ -407,3 +490,4 @@ if (urlSeed) {
 }
 
 console.log('Kanji-zushi Puzzle Mode initialized!');
+console.log('Keyboard shortcuts: 1-5 for neta, A-F for shari, Enter to form, Esc to clear, H for hint, N for new puzzle');

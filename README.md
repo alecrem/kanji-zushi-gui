@@ -43,6 +43,18 @@ npm start  # opens browser automatically
 6. Continue until no more valid combinations exist, or click **"Give Up"**
 7. See your final score compared to the optimal solution
 
+### Keyboard Shortcuts
+
+For faster gameplay, use these keyboard shortcuts:
+- **1-5**: Select neta cards (left half)
+- **A-F**: Select shari cards (right half)
+- **Enter/Space**: Form kanji
+- **Escape**: Clear selection
+- **H**: Show hint
+- **Ctrl+Z**: Undo last move
+- **N**: New puzzle
+- **Ctrl+S**: Share puzzle
+
 ## Project Structure
 
 ```
