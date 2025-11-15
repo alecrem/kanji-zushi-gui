@@ -34,11 +34,19 @@ const elements = {
   statsContent: document.getElementById('statsContent'),
   closeStatsBtn: document.getElementById('closeStatsBtn'),
   resetStatsBtn: document.getElementById('resetStatsBtn'),
-  shareBtn: document.getElementById('shareBtn')
+  shareBtn: document.getElementById('shareBtn'),
+  timedModeBtn: document.getElementById('timedModeBtn'),
+  timerSection: document.getElementById('timerSection'),
+  timerDisplay: document.getElementById('timerDisplay')
 };
 
 // Game instance
 const game = new PuzzleGame();
+
+// Timer state
+let timerInterval = null;
+let timeRemaining = 0;
+let isTimedMode = false;
 
 // Show message
 function showMessage(text, type = 'info') {
@@ -341,6 +349,7 @@ function handleResetStats() {
 
 // Start new puzzle
 function startNewPuzzle(seedString = null) {
+  stopTimer(); // Stop any running timer
   game.newPuzzle(seedString);
   renderNetaCards();
   renderShariCards();
@@ -390,6 +399,70 @@ function checkUrlForSeed() {
   return seed;
 }
 
+// Timer functions
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function updateTimerDisplay() {
+  elements.timerDisplay.textContent = formatTime(timeRemaining);
+
+  // Remove previous state classes
+  elements.timerDisplay.classList.remove('warning', 'danger');
+
+  // Add warning/danger styling
+  if (timeRemaining <= 10) {
+    elements.timerDisplay.classList.add('danger');
+  } else if (timeRemaining <= 30) {
+    elements.timerDisplay.classList.add('warning');
+  }
+}
+
+function startTimer(duration = 120) {
+  stopTimer(); // Clear any existing timer
+  timeRemaining = duration;
+  isTimedMode = true;
+
+  elements.timerSection.style.display = 'block';
+  elements.timedModeBtn.textContent = 'Stop Timer';
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    updateTimerDisplay();
+
+    if (timeRemaining <= 0) {
+      stopTimer();
+      showMessage('Time\'s up!', 'error');
+      setTimeout(() => showSummary(), 500);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  isTimedMode = false;
+  elements.timerSection.style.display = 'none';
+  elements.timedModeBtn.textContent = 'Timed Mode';
+  elements.timerDisplay.classList.remove('warning', 'danger');
+}
+
+function handleTimedMode() {
+  if (isTimedMode) {
+    stopTimer();
+    showMessage('Timer stopped', 'info');
+  } else {
+    startNewPuzzle();
+    startTimer(120); // 2 minutes
+    showMessage('Timed mode started! You have 2 minutes!', 'info');
+  }
+}
+
 // Event listeners
 elements.formKanjiBtn.addEventListener('click', handleFormKanji);
 elements.clearBtn.addEventListener('click', handleClearSelection);
@@ -399,6 +472,7 @@ elements.giveUpBtn.addEventListener('click', handleGiveUp);
 elements.newPuzzleBtn.addEventListener('click', () => startNewPuzzle());
 elements.closeModalBtn.addEventListener('click', () => startNewPuzzle());
 elements.shareBtn.addEventListener('click', handleShare);
+elements.timedModeBtn.addEventListener('click', handleTimedMode);
 elements.statsBtn.addEventListener('click', showStats);
 elements.closeStatsBtn.addEventListener('click', () => elements.statsModal.classList.remove('show'));
 elements.resetStatsBtn.addEventListener('click', handleResetStats);
@@ -476,6 +550,9 @@ document.addEventListener('keydown', (e) => {
         handleShare();
         e.preventDefault();
       }
+      break;
+    case 't':
+      handleTimedMode();
       break;
   }
 });

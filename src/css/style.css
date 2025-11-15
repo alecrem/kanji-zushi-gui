@@ -124,6 +124,20 @@ h1 {
   color: #28a745;
 }
 
+.score-value.timer {
+  font-family: 'Courier New', monospace;
+}
+
+.score-value.timer.warning {
+  color: #ff9800;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.score-value.timer.danger {
+  color: #dc3545;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
 /* Game Board */
 .game-board {
   margin-bottom: 25px;

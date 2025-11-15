@@ -53,6 +53,7 @@ For faster gameplay, use these keyboard shortcuts:
 - **H**: Show hint
 - **Ctrl+Z**: Undo last move
 - **N**: New puzzle
+- **T**: Toggle timed mode
 - **Ctrl+S**: Share puzzle
 
 ## Project Structure
@@ -92,10 +93,13 @@ The game includes 71 valid kanji combinations from the 10 neta radicals:
 - **Real-time validation** - See if your combination is valid before submitting
 - **Optimal solution calculator** - Compare your score to the best possible
 - **Score tracking** - Track your progress and remaining valid moves
+- **Timed mode** - Challenge yourself with a 2-minute countdown timer
 - **Undo functionality** - Made a mistake? Undo your last move
 - **Hint system** - Stuck? Get a hint for a valid combination
 - **Statistics tracking** - Track your lifetime stats (best score, average efficiency, perfect games)
 - **Shareable puzzles** - Share specific puzzles with friends via URL
+- **Polished animations** - Smooth visual feedback for all interactions
+- **Keyboard shortcuts** - Play quickly with full keyboard support
 - **Responsive design** - Works on desktop and mobile
 
 ## Sharing Puzzles
